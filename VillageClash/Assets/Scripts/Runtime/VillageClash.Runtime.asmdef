@@ -1,7 +1,7 @@
 {
   "name": "VillageClash.Runtime",
   "rootNamespace": "VillageClash",
-  "references": ["VillageClash.Core"],
+  "references": ["VillageClash.Core", "UnityEngine.UI"],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
