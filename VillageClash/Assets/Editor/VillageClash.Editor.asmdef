@@ -1,0 +1,14 @@
+{
+  "name": "VillageClash.Editor",
+  "rootNamespace": "VillageClash.Editor",
+  "references": ["VillageClash.Core", "VillageClash.Runtime", "VillageClash.UI"],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

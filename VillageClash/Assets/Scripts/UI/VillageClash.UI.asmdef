@@ -1,0 +1,14 @@
+{
+  "name": "VillageClash.UI",
+  "rootNamespace": "VillageClash.UI",
+  "references": ["VillageClash.Core", "VillageClash.Runtime"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
