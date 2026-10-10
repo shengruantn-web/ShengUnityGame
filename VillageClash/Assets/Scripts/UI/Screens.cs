@@ -1,28 +1,70 @@
+using UnityEngine;
 using VillageClash.Core;
 
 namespace VillageClash.UI
 {
-    /// <summary>Connects HUD buttons to panels. Panels are added task by task; unwired buttons toast.</summary>
+    /// <summary>Connects HUD buttons and world taps to panels and controllers.</summary>
     public static class Screens
     {
+        public static BuildModeController BuildMode { get; private set; }
+        public static BuildingPopup Popup { get; private set; }
+        public static System.Action<BattleSim> StartBattle = sim => UIKit.Toast("Battle presentation coming soon");
+
         public static void Wire(GameRoot root, Hud hud)
         {
             var c = root.Controller;
+            BuildMode = root.gameObject.AddComponent<BuildModeController>();
+            Popup = BuildingPopup.Create();
+            Popup.OnMove = id => BuildMode.BeginMove(id);
+            Popup.OnTrain = () => { Popup.Hide(); ArmyPanel.Show(1); };
+            Popup.OnResearch = () => { Popup.Hide(); ArmyPanel.Show(2); };
+            BuildMode.Ended += () => { };
+
+            root.Router.Tap += (cell, world) =>
+            {
+                if (root.Mode != GameMode.Village || UIKit.AnyModalOpen) return;
+                var v = c.State.Village;
+                var b = v.BuildingAt(cell);
+                if (b != null) { Popup.ShowBuilding(b.Id); return; }
+                var o = v.ObstacleAt(cell);
+                if (o != null) { Popup.ShowObstacle(o.Id); return; }
+                Popup.Hide();
+            };
+            root.Router.Held += (cell, world, dur) =>
+            {
+                // long-press on a building starts moving it
+                if (root.Mode != GameMode.Village || UIKit.AnyModalOpen || dur > 0.5f) return;
+                var b = c.State.Village.BuildingAt(cell);
+                if (b != null && !BuildMode.Active) { Popup.Hide(); BuildMode.BeginMove(b.Id); }
+            };
+            root.ModeChanged += m => { if (m != GameMode.Village) Popup.Hide(); hud.gameObject.SetActive(m != GameMode.Battle); };
+
+            hud.OnShop = () => { Popup.Hide(); ShopPanel.Show(t => BuildMode.BeginPlace(t)); };
             hud.OnBuyBuilder = () =>
             {
-                UIKit.Toast($"Buy a second builder for {GameData.SecondBuilderGemCost} gems from the Shop");
+                Popup.Hide();
+                var st = c.Shop(BuildingType.BuilderHut);
+                if (!st.CanBuildMore) { UIKit.Toast("You already have all builders!"); return; }
+                ConfirmDialog.Show("Hire a Builder", $"Hire another builder for {st.CostGems} gems?\nA second builder lets you build two things at once.", $"{st.CostGems}", () =>
+                {
+                    if (c.State.Gems < st.CostGems) { GameEvents.RaiseToast(Msg.NotEnoughGems); return; }
+                    BuildMode.BeginPlace(BuildingType.BuilderHut);
+                }, "Cancel", Palette.Green, "gem");
             };
             hud.OnBuyShield = () =>
             {
-                if (c.BuyShield()) { UIKit.Toast("Shield activated for 12 hours"); Sfx.Play(SfxId.Upgrade); }
+                if (c.State.ShieldActive(c.Now)) { UIKit.Toast("Your shield is already active."); return; }
+                ConfirmDialog.Show("Buy Shield", $"Protect your village from attacks for 12 hours for {GameData.ShieldGemCost} gems?", $"{GameData.ShieldGemCost}", () =>
+                {
+                    if (c.BuyShield()) Sfx.Play(SfxId.Upgrade);
+                }, "Cancel", Palette.Blue, "gem");
             };
-            hud.OnGems = () => UIKit.Toast("Gems are earned by clearing obstacles and winning battles");
+            hud.OnGems = () => UIKit.Toast("Gems are earned by clearing obstacles and winning battles.");
             hud.OnNews = () => UIKit.Toast("No news today. Go raid something!");
             hud.OnProfile = () => UIKit.Toast($"{c.State.PlayerName} - Level {c.State.Level} - {c.State.BattlesWon}/{c.State.BattlesPlayed} battles won");
-            hud.OnAttack = () => UIKit.Toast("Attack menu coming soon");
-            hud.OnArmy = () => UIKit.Toast("Army panel coming soon");
+            hud.OnAttack = () => { Popup.Hide(); AttackPanel.Show(sim => StartBattle(sim)); };
+            hud.OnArmy = () => { Popup.Hide(); ArmyPanel.Show(0); };
             hud.OnCastle = () => hud.OnClans?.Invoke();
-            hud.OnShop = () => UIKit.Toast("Shop coming soon");
             hud.OnSettings = () => UIKit.Toast("Settings coming soon");
             hud.OnClans = () => UIKit.Toast("Clans coming soon");
             hud.OnLeague = () => UIKit.Toast("League coming soon");

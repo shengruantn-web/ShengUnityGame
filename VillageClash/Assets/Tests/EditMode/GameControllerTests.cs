@@ -145,5 +145,20 @@ namespace VillageClash.Tests
             Assert.IsTrue(SaveSystem.TryDeserialize(store, out var s));
             Assert.That(s.Gold, Is.EqualTo(GameData.StartingGold));
         }
-    }
+    
+        [Test]
+        public void FillWithGems_TopsUpMissingResourcesAtOneGemPerTen()
+        {
+            gc.State.Gold = 100; gc.State.Elixir = 0; gc.State.Gems = 50;
+            Assert.AreEqual(25, gc.GemFillCost(300, 50));          // missing 200 + 50 = 250 -> 25 gems
+            Assert.IsTrue(gc.FillWithGems(300, 50));
+            Assert.AreEqual(300, gc.State.Gold);
+            Assert.AreEqual(50, gc.State.Elixir);
+            Assert.AreEqual(25, gc.State.Gems);
+            Assert.AreEqual(0, gc.GemFillCost(300, 50));
+            gc.State.Gems = 0;
+            Assert.IsFalse(gc.FillWithGems(10000, 0));
+            Assert.AreEqual(Msg.NotEnoughGems, toasts[toasts.Count - 1]);
+        }
+}
 }

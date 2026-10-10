@@ -206,6 +206,24 @@ namespace VillageClash.Core
             return Ok("Shield activated!");
         }
 
+        /// <summary>Gems needed to top up resources to afford a gold/elixir price (1 gem per 10 missing, min 1).</summary>
+        public int GemFillCost(int gold, int elixir)
+        {
+            int missing = Math.Max(0, gold - State.Gold) + Math.Max(0, elixir - State.Elixir);
+            return missing <= 0 ? 0 : Math.Max(1, (missing + 9) / 10);
+        }
+
+        /// <summary>Spend gems to raise gold/elixir up to the given price, ignoring storage caps.</summary>
+        public bool FillWithGems(int gold, int elixir)
+        {
+            int cost = GemFillCost(gold, elixir);
+            if (cost == 0) return Ok();
+            if (!Economy.Spend(State, 0, 0, cost)) return Fail(Msg.NotEnoughGems);
+            State.Gold = Math.Max(State.Gold, gold);
+            State.Elixir = Math.Max(State.Elixir, elixir);
+            return Ok();
+        }
+
         public bool BuyBuilder(Int2 origin) => ConfirmPlace(BuildingType.BuilderHut, origin);
 
         public bool SetName(string name)
