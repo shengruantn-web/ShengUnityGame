@@ -21,7 +21,7 @@ namespace VillageClash.UI
             GameEvents.Toast += msg => UIKit.Toast(msg);
             GameEvents.LevelUp += lvl => { UIKit.Toast($"Level up! You reached level {lvl}", Palette.Hex("2d7a2d")); Sfx.Play(SfxId.Win); };
             GameEvents.BuildingCompleted += _ => Sfx.Play(SfxId.Build);
-            GameEvents.ResourcesCollected += (g, e, _) =>
+            GameEvents.ResourcesCollected += (_, g, e) =>
             {
                 if (g > 0) UIKit.Toast($"+{Fmt.Num(g)} gold", Palette.Hex("8a6a10"));
                 if (e > 0) UIKit.Toast($"+{Fmt.Num(e)} elixir", Palette.Hex("7a2a78"));

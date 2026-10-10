@@ -8,7 +8,8 @@ namespace VillageClash.UI
     {
         public static BuildModeController BuildMode { get; private set; }
         public static BuildingPopup Popup { get; private set; }
-        public static System.Action<BattleSim> StartBattle = sim => UIKit.Toast("Battle presentation coming soon");
+        public static BattleController Battle { get; private set; }
+        public static BattleHud BattleHud { get; private set; }
 
         public static void Wire(GameRoot root, Hud hud)
         {
@@ -18,7 +19,9 @@ namespace VillageClash.UI
             Popup.OnMove = id => BuildMode.BeginMove(id);
             Popup.OnTrain = () => { Popup.Hide(); ArmyPanel.Show(1); };
             Popup.OnResearch = () => { Popup.Hide(); ArmyPanel.Show(2); };
-            BuildMode.Ended += () => { };
+            Battle = root.gameObject.AddComponent<BattleController>();
+            BattleHud = BattleHud.Create(Battle);
+            Battle.Finished += result => { BattleHud.Hide(); ResultPanel.Show(result, () => Battle.ReturnHome()); };
 
             root.Router.Tap += (cell, world) =>
             {
@@ -37,7 +40,11 @@ namespace VillageClash.UI
                 var b = c.State.Village.BuildingAt(cell);
                 if (b != null && !BuildMode.Active) { Popup.Hide(); BuildMode.BeginMove(b.Id); }
             };
-            root.ModeChanged += m => { if (m != GameMode.Village) Popup.Hide(); hud.gameObject.SetActive(m != GameMode.Battle); };
+            root.ModeChanged += m =>
+            {
+                if (m != GameMode.Village) Popup.Hide();
+                if (m == GameMode.Battle) BattleHud.Show();
+            };
 
             hud.OnShop = () => { Popup.Hide(); ShopPanel.Show(t => BuildMode.BeginPlace(t)); };
             hud.OnBuyBuilder = () =>
@@ -62,7 +69,7 @@ namespace VillageClash.UI
             hud.OnGems = () => UIKit.Toast("Gems are earned by clearing obstacles and winning battles.");
             hud.OnNews = () => UIKit.Toast("No news today. Go raid something!");
             hud.OnProfile = () => UIKit.Toast($"{c.State.PlayerName} - Level {c.State.Level} - {c.State.BattlesWon}/{c.State.BattlesPlayed} battles won");
-            hud.OnAttack = () => { Popup.Hide(); AttackPanel.Show(sim => StartBattle(sim)); };
+            hud.OnAttack = () => { Popup.Hide(); AttackPanel.Show(sim => Battle.Begin(sim)); };
             hud.OnArmy = () => { Popup.Hide(); ArmyPanel.Show(0); };
             hud.OnCastle = () => hud.OnClans?.Invoke();
             hud.OnSettings = () => UIKit.Toast("Settings coming soon");

@@ -85,7 +85,7 @@
 
 ### Task 12: Battle presentation + result
 **Files:** `Runtime/Battle/BattleController.cs` (owns BattleSim, ticks, deploy input incl. hold-to-deploy, camera on enemy base), `Runtime/Battle/BattleRenderer.cs` (units, hp bars, projectiles, loot pops, destroyed rubble, no-deploy tint), `UI/BattleHud.cs` (loot, timer, troop bar with dashed empty slots, Overall Damage stars/%, Surrender/End Battle, Exit Tutorial), `UI/ResultPanel.cs`.
-- [ ] Commit.
+- [x] Commit.
 
 ### Task 13: League, Clans, Settings, defense log, polish
 **Files:** `UI/LeaguePanel.cs`, `UI/ClanPanel.cs` (mock data, search), `UI/SettingsPanel.cs` (toggles, mock connect buttons, More Settings → Reset Village), `UI/DefenseLogToast.cs`; `Editor/ProjectSetup.BuildMac()`.
