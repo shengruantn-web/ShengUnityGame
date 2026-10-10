@@ -134,7 +134,32 @@ For manual testing with an isolated starter village and normal real-time timers:
 This mode stays open until you quit and prints its temporary save path in the
 player log. Use it separately from `-smoke-test` and `-shots`.
 
+## Package for release
+
+`ProjectSetup.BuildMac` now applies the release identity before building (bundle id
+`com.shengruantn.villageclash`, version from `ProjectSetup.Version`, the procedural icon in
+`Assets/Icon/AppIcon.png`) and removes the Burst debug folder afterwards. To produce a
+distributable zip:
+
+```bash
+scripts/package_mac.sh                                   # ad-hoc signed
+CODESIGN_IDENTITY="Developer ID Application: ..." NOTARY_PROFILE=myprofile scripts/package_mac.sh
+```
+
+The script strips debug symbols, signs and verifies the bundle, writes
+`VillageClash/Builds/VillageClash-<version>-macOS.zip` with a `.sha256` next to it, and
+notarizes when a Developer ID identity and notary profile are given. An ad-hoc signed build runs
+on other Macs only after **right-click > Open** on the first launch, or after
+`xattr -d com.apple.quarantine VillageClash.app`.
+
+To regenerate the icon: `python3 scripts/make_icon.py VillageClash/Assets/Icon/AppIcon.png`.
+
 ## Save file
 
 `~/Library/Application Support/VillageClash/Village Clash/village.json` (Unity's
 `persistentDataPath`). Delete it, or use Settings > More Settings > Reset Village, to start over.
+
+## License
+
+MIT, see `LICENSE`. Village Clash is a fan-made learning project and is not affiliated with or
+endorsed by Supercell.

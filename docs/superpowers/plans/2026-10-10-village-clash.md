@@ -126,3 +126,13 @@
 3. Guided first-time experience through collection, building, training, raiding, and upgrading.
 4. Town Hall 1–5 progression balance and combat feedback.
 5. Release documentation, reconciled acceptance checklist, screenshots, and final macOS package.
+
+### Follow-up 3: Release hygiene (2026-10-10)
+
+- [x] Replace the template bundle id `com.DefaultCompany.2D-Project` with `com.shengruantn.villageclash`; set version 1.0.0 and macOS build number 1 (`ProjectSetup.ConfigureRelease`, run by `BuildMac`).
+- [x] Procedural app icon (`scripts/make_icon.py` → `Assets/Icon/AppIcon.png`) assigned to all standalone icon sizes.
+- [x] `BuildMac` removes `*_BurstDebugInformation_DoNotShip` after a successful build.
+- [x] `scripts/package_mac.sh`: strip, sign (ad-hoc or Developer ID), verify, zip with sha256, optional notarization.
+- [x] `LICENSE` (MIT) and `CHANGELOG.md`; README sections for packaging and license.
+- [ ] Rebuild with `BuildMac` once the save-reliability work is committed; confirm `Info.plist` shows the new bundle id, version and icon; run `scripts/package_mac.sh`.
+- [ ] Tag `v1.0.0`, push, and publish a GitHub Release with the zip, sha256, screenshots and the changelog entry.
