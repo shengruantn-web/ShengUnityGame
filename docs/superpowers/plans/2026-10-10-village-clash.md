@@ -89,7 +89,40 @@
 
 ### Task 13: League, Clans, Settings, defense log, polish
 **Files:** `UI/LeaguePanel.cs`, `UI/ClanPanel.cs` (mock data, search), `UI/SettingsPanel.cs` (toggles, mock connect buttons, More Settings → Reset Village), `UI/DefenseLogToast.cs`; `Editor/ProjectSetup.BuildMac()`.
-- [x] Headless build via `unity build … --execute-method ProjectSetup.BuildMac --target StandaloneOSX`; launch app, capture screenshot with `screencapture`, fix visual issues. Commit.
+- [x] Headless macOS build and app launch.
+- [ ] Complete final visual and native-input acceptance across window sizes. The 1600×900 review found and drove the fixes listed under Follow-up 2; final recapture awaits an unlocked desktop.
 
 ### Task 14: Verification
 - [x] `unity test --mode EditMode` all green; build succeeds; app launches; smoke a full loop (place, collect, train, attack, result, save reload). Write `README.md` with how to open/run/test/build. Final commit.
+
+### Follow-up 1: Reliable automated verification (2026-10-10)
+
+- [x] Isolate both `-smoke-test` and `-shots` runs in a fresh temporary save, with a seeded village and controlled clock.
+- [x] Assert construction completion, successful collection, paid training and completion, normal raid loot/trophies, troop consumption, and return home.
+- [x] Compare the complete persisted state after loading through a fresh controller; check that repeated battle completion cannot duplicate rewards.
+- [x] Fail on runtime errors and invalid options; enforce a watchdog independent of Unity frames.
+- [x] Validate screenshot pixel variation and PNG decoding; reject headless screenshot requests explicitly.
+- [x] Add `scripts/verify_smoke.py`: two repeatable gameplay runs, invalid invocation checks, watchdog check, and verification that the normal save is unchanged.
+- [x] Run existing EditMode tests (50/50 passed), rebuild the macOS app, and pass the smoke-runner verification script.
+- [x] Capture and inspect all 13 screens at 1600×900. This exposed rendering bugs addressed in Follow-up 2.
+
+### Follow-up 2: Visual and input QA (2026-10-10)
+
+- [x] Fix out-of-range sprite draw orders that placed the ground above buildings, troops, and projectiles.
+- [x] Correct UI sprite pixel density so nine-slice panel and button corners retain their intended size.
+- [x] Keep the full reference canvas visible at other aspect ratios; fix the wrapped Attack label, clan-row icon overlap, and practice-row spacing/loot preview.
+- [x] Draw placement ghosts above existing buildings and disable confirmation on overlapping footprints.
+- [x] Capture the existing pointer gesture when long-press movement begins; remove the conflicting one-direction keyboard nudge.
+- [x] Add input-router regression checks for UI interception, pan, zoom, modal blocking, long-press drag, invalid placement, and cancellation.
+- [x] Add `-qa-session` for manual testing without using the normal player save.
+- [x] Rebuild macOS player; rerun EditMode tests (50/50 passed) and standalone smoke-runner checks.
+- [ ] Recapture the final build at 1600×900, 1280×720, and 1280×960; replace the screenshot artifacts after review.
+- [ ] Exercise native mouse/keyboard controls on an unlocked desktop. Input-router checks pass, but desktop automation could not find the window after the screen locked again.
+
+### Remaining follow-up order
+
+1. Visual and input QA across window sizes: layout, placement, camera, deployment.
+2. Save reliability: atomic writes, backup/recovery, and interruption during battle.
+3. Guided first-time experience through collection, building, training, raiding, and upgrading.
+4. Town Hall 1–5 progression balance and combat feedback.
+5. Release documentation, reconciled acceptance checklist, screenshots, and final macOS package.

@@ -13,6 +13,8 @@ namespace VillageClash.UI
         static void Boot()
         {
             if (Booted || GameRoot.I != null) return;
+            var smoke = SmokeSession.StartFromCommandLine();
+            if (smoke != null && smoke.Finished) return;
             Booted = true;
             var root = GameRoot.Create();
             UIKit.Init();

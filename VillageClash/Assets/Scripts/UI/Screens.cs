@@ -36,9 +36,9 @@ namespace VillageClash.UI
             root.Router.Held += (cell, world, dur) =>
             {
                 // long-press on a building starts moving it
-                if (root.Mode != GameMode.Village || UIKit.AnyModalOpen || dur > 0.5f) return;
+                if (root.Mode != GameMode.Village || UIKit.AnyModalOpen) return;
                 var b = c.State.Village.BuildingAt(cell);
-                if (b != null && !BuildMode.Active) { Popup.Hide(); BuildMode.BeginMove(b.Id); }
+                if (b != null && !BuildMode.Active) { Popup.Hide(); BuildMode.BeginMove(b.Id, cell); }
             };
             root.ModeChanged += m =>
             {

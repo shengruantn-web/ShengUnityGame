@@ -12,7 +12,7 @@ namespace VillageClash
         sealed class Item
         {
             public GameObject Go; public RectTransform Rt; public Image Fill; public Text Text; public Image Icon;
-            public Action OnClick; public int Frame; public Vector3 World; public Vector2 Offset;
+            public Action OnClick; public Button Button; public int Frame; public Vector3 World; public Vector2 Offset;
         }
 
         readonly Dictionary<string, Item> items = new Dictionary<string, Item>();
@@ -29,7 +29,7 @@ namespace VillageClash
             var sc = go.GetComponent<CanvasScaler>();
             sc.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             sc.referenceResolution = new Vector2(1920, 1080);
-            sc.matchWidthOrHeight = 0.5f;
+            sc.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
             var wl = go.AddComponent<WorldLabels>();
             wl.canvasRt = (RectTransform)go.transform;
             wl.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -86,7 +86,7 @@ namespace VillageClash
         }
 
         /// <summary>Tappable icon bubble above a world point.</summary>
-        public void Bubble(string key, Vector3 world, Sprite icon, Action onClick, float size = 56)
+        public void Bubble(string key, Vector3 world, Sprite icon, Action onClick, float size = 56, bool interactable = true)
         {
             var it = Get(key, () =>
             {
@@ -100,7 +100,8 @@ namespace VillageClash
                 bg.sprite = SpriteFactory.Circle; bg.color = new Color(1f, 1f, 1f, 0.92f);
                 Stretch((RectTransform)bg.transform, 0, 0, 0, 0);
                 var captured = i;
-                bg.GetComponent<Button>().onClick.AddListener(() => captured.OnClick?.Invoke());
+                i.Button = bg.GetComponent<Button>();
+                i.Button.onClick.AddListener(() => captured.OnClick?.Invoke());
                 var ic = new GameObject("icon", typeof(Image)).GetComponent<Image>();
                 ic.transform.SetParent(i.Rt, false); ic.raycastTarget = false;
                 Stretch((RectTransform)ic.transform, 8, 8, 8, 8);
@@ -111,6 +112,8 @@ namespace VillageClash
             it.World = world; it.Offset = new Vector2(0, 10);
             it.Icon.sprite = icon;
             it.OnClick = onClick;
+            it.Button.interactable = interactable;
+            it.Icon.color = interactable ? Color.white : Palette.Grey;
         }
 
         /// <summary>Plain floating text (e.g. names, damage).</summary>

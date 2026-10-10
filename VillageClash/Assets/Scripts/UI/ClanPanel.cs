@@ -148,18 +148,18 @@ namespace VillageClash.UI
             var n = UIKit.Dark(row, cl.Name, 28, TextAnchor.MiddleLeft);
             UIKit.Place((RectTransform)n.transform, UIKit.ML, new Vector2(104, 22), new Vector2(500, 40));
             var j = UIKit.Dark(row, $"{cl.Join}   -   Required trophies: {cl.Required}", 20, TextAnchor.MiddleLeft, false);
-            UIKit.Place((RectTransform)j.transform, UIKit.ML, new Vector2(104, -18), new Vector2(560, 34));
+            UIKit.Place((RectTransform)j.transform, UIKit.ML, new Vector2(104, -18), new Vector2(490, 34));
             var tr = UIKit.Icon(row, "trophy", 34);
-            UIKit.Place((RectTransform)tr.transform, UIKit.ML, new Vector2(680, 0), new Vector2(34, 34));
+            UIKit.Place((RectTransform)tr.transform, UIKit.ML, new Vector2(620, 0), new Vector2(34, 34));
             var tt = UIKit.Dark(row, Fmt.Num(cl.Trophies), 24, TextAnchor.MiddleLeft);
-            UIKit.Place((RectTransform)tt.transform, UIKit.ML, new Vector2(720, 0), new Vector2(140, 40));
+            UIKit.Place((RectTransform)tt.transform, UIKit.ML, new Vector2(660, 0), new Vector2(140, 40));
             var mem = UIKit.Dark(row, $"{cl.Members}/50", 24, TextAnchor.MiddleLeft);
-            UIKit.Place((RectTransform)mem.transform, UIKit.ML, new Vector2(880, 0), new Vector2(100, 40));
+            UIKit.Place((RectTransform)mem.transform, UIKit.ML, new Vector2(810, 0), new Vector2(100, 40));
             string[] chips = { "flag", "sword", "globe" };
             for (int i = 0; i < 3; i++)
             {
                 var ch = UIKit.Icon(row, chips[i], 30);
-                UIKit.Place((RectTransform)ch.transform, UIKit.MR, new Vector2(-190 + i * 36, 0), new Vector2(30, 30));
+                UIKit.Place((RectTransform)ch.transform, UIKit.MR, new Vector2(-228 + i * 36, 0), new Vector2(30, 30));
             }
             bool canJoin = cl.Join == "Anyone can join" && c.State.Trophies >= cl.Required;
             var btn = UIKit.Btn(row, cl.Join == "Closed" ? "Closed" : cl.Join == "Invite only" ? "Request" : "Join", canJoin ? Palette.Green : Palette.GreyDark, new Vector2(130, 56),

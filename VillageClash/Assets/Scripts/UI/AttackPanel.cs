@@ -52,8 +52,10 @@ namespace VillageClash.UI
                 var gi = UIKit.Icon(row, "goblin", 70);
                 UIKit.Place((RectTransform)gi.transform, UIKit.ML, new Vector2(16, 0), new Vector2(70, 70));
                 var eb = EnemyBaseGenerator.Practice(id);
-                var name = UIKit.Dark(row, $"{eb.Name}\nTown Hall {eb.TownHallLevel}   Loot: {Fmt.Num(eb.Gold)} gold, {Fmt.Num(eb.Elixir)} elixir", 22, TextAnchor.MiddleLeft, false);
-                UIKit.Place((RectTransform)name.transform, UIKit.ML, new Vector2(100, 0), new Vector2(300, 100));
+                int gold = LootCalculator.Available(eb.Gold, eb.TownHallLevel);
+                int elixir = LootCalculator.Available(eb.Elixir, eb.TownHallLevel);
+                var name = UIKit.Dark(row, $"{eb.Name}\nTown Hall {eb.TownHallLevel}\nLoot: {Fmt.Num(gold)} gold / {Fmt.Num(elixir)} elixir", 20, TextAnchor.MiddleLeft, false);
+                UIKit.Place((RectTransform)name.transform, UIKit.ML, new Vector2(100, 0), new Vector2(286, 100));
                 var go = UIKit.Btn(row, "Attack", s.ArmySize > 0 ? Palette.Red : Palette.Grey, new Vector2(130, 64), () =>
                 {
                     var sim = c.StartPractice(id);

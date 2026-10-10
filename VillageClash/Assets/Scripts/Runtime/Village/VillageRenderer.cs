@@ -20,6 +20,10 @@ namespace VillageClash
         readonly List<int> tmp = new List<int>();
         SpriteRenderer ground;
 
+        // Unity stores sortingOrder as a signed 16-bit value. Keep every layer in range.
+        public const int GroundOrder = -10000, OverlayOrder = -9000;
+        public const int EffectsOrder = 10000, ProjectileOrder = 11000;
+
         public static int SortOrder(float cx, float cy) => -(int)((cx + cy) * 50f);
 
         public static Vector3 FootprintWorld(Int2 origin, int size)
@@ -47,7 +51,7 @@ namespace VillageClash
             ground.transform.SetParent(transform, false);
             ground.sprite = SpriteFactory.Ground(size);
             ground.transform.position = new Vector3(0, size * 0.25f, 0);
-            ground.sortingOrder = -100000;
+            ground.sortingOrder = GroundOrder;
             Sync();
         }
 

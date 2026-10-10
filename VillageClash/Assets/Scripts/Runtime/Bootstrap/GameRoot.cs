@@ -20,7 +20,9 @@ namespace VillageClash
         public event Action<GameMode> ModeChanged;
 
         float tickTimer;
-        public string SavePath => Path.Combine(Application.persistentDataPath, "village.json");
+        public string SavePath => SmokeSession.Current != null
+            ? SmokeSession.Current.SavePath
+            : Path.Combine(Application.persistentDataPath, "village.json");
 
         public static GameRoot Create()
         {
@@ -34,7 +36,9 @@ namespace VillageClash
             if (I != null && I != this) { Destroy(gameObject); return; }
             I = this;
             Application.targetFrameRate = 60;
-            Controller = new GameController(new SystemClock(), LoadFile, SaveFile);
+            IClock clock = SmokeSession.Current != null && !SmokeSession.Current.Interactive
+                ? (IClock)SmokeSession.Current.Clock : new SystemClock();
+            Controller = new GameController(clock, LoadFile, SaveFile);
             Controller.Load();
             Cam = CameraRig.Create();
             Village = new GameObject("Village").AddComponent<VillageRenderer>();

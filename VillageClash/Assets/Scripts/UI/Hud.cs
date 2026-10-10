@@ -96,7 +96,7 @@ namespace VillageClash.UI
             // ---------- bottom-left: attack / army / castle ----------
             var bl = UIKit.Node("bottom-left", root);
             UIKit.Place(bl, UIKit.BL, new Vector2(16, 16), new Vector2(520, 130));
-            attackBtn = UIKit.Btn(bl, "Attack!", Palette.Red, new Vector2(200, 92), () => OnAttack?.Invoke(), 38, "sword");
+            attackBtn = UIKit.Btn(bl, "Attack!", Palette.Red, new Vector2(200, 92), () => OnAttack?.Invoke(), 32, "sword");
             UIKit.Place(attackBtn.Rt, UIKit.BL, Vector2.zero, new Vector2(200, 92));
             var army = UIKit.Btn(bl, "Army", Palette.Blue, new Vector2(130, 92), () => OnArmy?.Invoke(), 26, "fist");
             UIKit.Place(army.Rt, UIKit.BL, new Vector2(212, 0), new Vector2(130, 92));

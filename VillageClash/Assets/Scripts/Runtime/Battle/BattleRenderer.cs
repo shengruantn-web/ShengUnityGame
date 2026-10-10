@@ -46,7 +46,7 @@ namespace VillageClash
                     sr.transform.SetParent(noDeployRoot, false);
                     sr.sprite = SpriteFactory.Tile;
                     sr.color = col;
-                    sr.sortingOrder = -90000;
+                    sr.sortingOrder = VillageRenderer.OverlayOrder;
                     sr.transform.position = VillageRenderer.CellWorld(x + 0.5f, y + 0.5f);
                     noDeployTiles.Add(sr);
                 }
@@ -115,7 +115,7 @@ namespace VillageClash
             sr.color = c;
             sr.transform.position = at;
             sr.transform.localScale = Vector3.one * 0.1f;
-            sr.sortingOrder = 50000;
+            sr.sortingOrder = VillageRenderer.EffectsOrder;
             fx.Add(new Fx { Sr = sr, T = 0, Life = life, Scale = scale, Pos = at });
         }
 
@@ -182,7 +182,7 @@ namespace VillageClash
                 var w = VillageRenderer.CellWorld(pr.X, pr.Y);
                 float arc = pr.Kind == ProjectileKind.Shell ? Mathf.Sin(Mathf.Clamp01(pr.Progress) * Mathf.PI) * 2.2f : pr.Kind == ProjectileKind.Arrow ? Mathf.Sin(Mathf.Clamp01(pr.Progress) * Mathf.PI) * 0.6f : 0.3f;
                 sr.transform.position = w + new Vector3(0, 0.5f + arc, 0);
-                sr.sortingOrder = 60000;
+                sr.sortingOrder = VillageRenderer.ProjectileOrder;
                 if (pr.Kind == ProjectileKind.Arrow)
                 {
                     var dir = new Vector2(pr.TX - pr.X, pr.TY - pr.Y);

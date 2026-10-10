@@ -84,7 +84,7 @@ namespace VillageClash.UI
             var sc = go.GetComponent<CanvasScaler>();
             sc.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             sc.referenceResolution = new Vector2(1920, 1080);
-            sc.matchWidthOrHeight = 0.5f;
+            sc.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
             Root = (RectTransform)go.transform;
             runner = go.AddComponent<Runner>();
             HudLayer = Layer("Hud"); PanelLayer = Layer("Panels"); ModalLayer = Layer("Modals"); ToastLayer = Layer("Toasts");
@@ -211,13 +211,14 @@ namespace VillageClash.UI
             var v = new BtnView { Button = b, Image = img, Rt = rt, BaseColor = color };
             if (icon != null)
             {
-                var ic = Icon(go.transform, icon, Mathf.Min(size.y - 12, 56));
-                if (!string.IsNullOrEmpty(text)) Place((RectTransform)ic.transform, ML, new Vector2(10, 0), new Vector2(size.y - 16, size.y - 16));
+                float iconSize = Mathf.Min(size.y - 16, 56);
+                var ic = Icon(go.transform, icon, iconSize);
+                if (!string.IsNullOrEmpty(text)) Place((RectTransform)ic.transform, ML, new Vector2(10, 0), new Vector2(iconSize, iconSize));
             }
             if (!string.IsNullOrEmpty(text))
             {
                 v.Label = Label(go.transform, text, fontSize);
-                if (icon != null) Stretch((RectTransform)v.Label.transform, size.y - 8, 0, 8, 0);
+                if (icon != null) Stretch((RectTransform)v.Label.transform, Mathf.Min(size.y - 16, 56) + 18, 0, 8, 0);
             }
             b.onClick.AddListener(() => { Sfx.Play(SfxId.Tap); onClick?.Invoke(); });
             return v;

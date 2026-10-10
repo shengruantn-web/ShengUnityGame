@@ -41,7 +41,7 @@ namespace VillageClash
             Begin(CenterCell());
         }
 
-        public void BeginMove(int id)
+        public void BeginMove(int id, Int2? pointerCell = null)
         {
             var b = R.Controller.State.Village.Find(id);
             if (b == null) return;
@@ -49,6 +49,9 @@ namespace VillageClash
             type = b.Type; level = b.Level; moveId = id; size = b.Size;
             R.Village.HiddenId = id;
             Begin(b.Origin);
+            // Long-press has already passed PressBegan. Capture that same gesture
+            // so continuing to drag moves the building instead of panning the camera.
+            if (pointerCell.HasValue) OnPressBegan(pointerCell.Value, Vector2.zero);
         }
 
         Int2 CenterCell()
@@ -77,7 +80,7 @@ namespace VillageClash
                 var t = new GameObject("tile").AddComponent<SpriteRenderer>();
                 t.transform.SetParent(holder, false);
                 t.sprite = SpriteFactory.Tile;
-                t.sortingOrder = -90000;
+                t.sortingOrder = VillageRenderer.OverlayOrder;
                 tiles.Add(t);
             }
             R.SetMode(GameMode.Build);
@@ -90,7 +93,7 @@ namespace VillageClash
             origin = Clamp(o);
             valid = R.Controller.CanPlace(type, origin, moveId);
             ghost.transform.position = VillageRenderer.FootprintWorld(origin, size);
-            ghost.sortingOrder = VillageRenderer.SortOrder(origin.X + size * 0.5f, origin.Y + size * 0.5f) + 1;
+            ghost.sortingOrder = VillageRenderer.EffectsOrder - 1;
             ghost.color = valid ? Color.white : new Color(1f, 0.6f, 0.6f, 1f);
             var c = valid ? Palette.Alpha(Palette.Green, 0.55f) : Palette.Alpha(Palette.Red, 0.55f);
             int k = 0;
@@ -129,10 +132,9 @@ namespace VillageClash
         {
             if (!Active) return;
             var top = VillageRenderer.FootprintWorld(origin, size) + new Vector3(0, size * 0.25f + 0.9f, 0);
-            R.Labels.Bubble("bm_ok", top + new Vector3(-0.55f, 0, 0), SpriteFactory.Icon("check"), Confirm, 64);
+            R.Labels.Bubble("bm_ok", top + new Vector3(-0.55f, 0, 0), SpriteFactory.Icon("check"), Confirm, 64, valid);
             R.Labels.Bubble("bm_no", top + new Vector3(0.55f, 0, 0), SpriteFactory.Icon("close"), Cancel, 64);
             if (UnityEngine.Input.GetKeyDown(KeyCode.Return) || UnityEngine.Input.GetKeyDown(KeyCode.KeypadEnter)) Confirm();
-            if (UnityEngine.Input.GetKey(KeyCode.LeftArrow) && UnityEngine.Input.GetKeyDown(KeyCode.LeftArrow)) SetOrigin(new Int2(origin.X - 1, origin.Y));
         }
 
         public void Confirm()

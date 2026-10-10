@@ -59,7 +59,7 @@ namespace VillageClash
                 {
                     var p = new Painter(64, 64);
                     p.RoundRect(0, 0, 64, 64, 14, Color.white);
-                    return p.ToSprite(1, new Vector2(0.5f, 0.5f), new Vector4(20, 20, 20, 20));
+                    return p.ToSprite(100, new Vector2(0.5f, 0.5f), new Vector4(20, 20, 20, 20));
                 }
                 case "bevel":
                 {
@@ -67,13 +67,13 @@ namespace VillageClash
                     p.RoundRect(0, 0, 64, 64, 14, new Color(0.78f, 0.78f, 0.78f));
                     p.RoundRect(0, 30, 64, 64, 14, Color.white);
                     p.Rect(4, 26, 60, 34, Color.white);
-                    return p.ToSprite(1, new Vector2(0.5f, 0.5f), new Vector4(20, 20, 20, 20));
+                    return p.ToSprite(100, new Vector2(0.5f, 0.5f), new Vector4(20, 20, 20, 20));
                 }
                 case "circle":
                 {
                     var p = new Painter(64, 64);
                     p.Circle(32, 32, 31, Color.white);
-                    return p.ToSprite(1, new Vector2(0.5f, 0.5f));
+                    return p.ToSprite(Ppu, new Vector2(0.5f, 0.5f));
                 }
                 default:
                 {

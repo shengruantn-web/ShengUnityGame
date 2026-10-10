@@ -69,22 +69,70 @@ open Builds/VillageClash.app
 
 Both menu items are also available in the Editor under **Village Clash**.
 
-### Automated screenshot smoke test
+### Automated gameplay and screenshot checks
 
-The player accepts a `-shots <dir>` argument. It then walks through every screen
-(village, shop, build mode, army, attack menu, a full practice battle, result,
-league, clans, settings, mail), saves one PNG per screen into `<dir>`, saves the
-game and quits. Useful for a headless visual check after a build:
+Both verification modes start with a fresh, seeded village in a unique temporary
+directory, using a controlled clock. They never load or write your normal player
+save. The isolated save path is printed in the log and retained for inspection.
+
+Run gameplay checks without a display (from the repository root):
 
 ```bash
-"Builds/VillageClash.app/Contents/MacOS/Village Clash" -shots /tmp/vc-shots
+"VillageClash/Builds/VillageClash.app/Contents/MacOS/Village Clash" \
+  -batchmode -nographics -smoke-test -logFile /tmp/vc-smoke.log
+```
+
+The runner asserts building placement and construction completion, resource
+collection, paid training and completion, a normal raid with loot/trophies and
+troop consumption, return home, and complete save/reload through a fresh controller.
+Timers and the battle simulation are accelerated so the checks finish quickly.
+It prints `[Smoke] OK/FAIL` lines and returns exit code **0** only when all checks
+pass; failed checks, runtime errors, or invalid options return **1**.
+
+The watchdog runs independently of Unity frames and forcibly terminates a stalled
+player with a nonzero exit code, including when rendering stops advancing.
+Override its deadline with `-smoke-timeout <seconds>` (1–600; default 180).
+
+To also capture all 13 screens, use an unlocked desktop with a working graphics
+session. This includes the village, building popup, shop, build mode, army, attack
+menu, raid, result, league, clans, settings, and mail:
+
+```bash
+"VillageClash/Builds/VillageClash.app/Contents/MacOS/Village Clash" \
+  -shots /tmp/vc-shots -logFile /tmp/vc-shots.log
 open /tmp/vc-shots
 ```
 
-The same run also logs `[Smoke] OK/FAIL` lines for placing a building, training a troop,
-the battle result and a save/reload round-trip, ending with `ALL CHECKS PASSED`. To run
-it without a display (CI, or a locked screen) add `-batchmode -nographics`; the state
-checks still run and are printed to stdout, but the PNGs are then blank.
+Screenshots must contain nonuniform rendered pixels and decode successfully at
+the captured resolution. Existing PNGs with the same names are replaced.
+`-shots` rejects batch mode or a null graphics device; use `-smoke-test` for CI.
+Successful capture validates the artifacts, but layout and input still need visual
+and interactive review.
+
+Verify repeatability, failure exit codes, and preservation of your normal save:
+
+```bash
+python3 scripts/verify_smoke.py
+```
+
+This runs two independent gameplay checks, two invalid-invocation checks, and a
+one-second watchdog check. It compares the resulting game states and checks that
+your normal save's contents and modification time are unchanged. Logs are retained
+in a temporary directory.
+
+The runner also exercises the same input-router gesture methods used by mouse
+input: UI click suppression, camera drag and zoom, modal input blocking,
+long-press building movement, invalid placement, and cancellation. These checks
+complement desktop mouse/keyboard testing; they do not synthesize OS input.
+
+For manual testing with an isolated starter village and normal real-time timers:
+
+```bash
+"VillageClash/Builds/VillageClash.app/Contents/MacOS/Village Clash" -qa-session
+```
+
+This mode stays open until you quit and prints its temporary save path in the
+player log. Use it separately from `-smoke-test` and `-shots`.
 
 ## Save file
 
