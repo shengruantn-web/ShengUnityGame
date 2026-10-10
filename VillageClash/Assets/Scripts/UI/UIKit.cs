@@ -98,12 +98,12 @@ namespace VillageClash.UI
 
         static RectTransform Layer(string name)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(GraphicRaycaster));
+            // GraphicRaycaster requires a Canvas, so create both up front (adding Canvas afterwards fails).
+            var go = new GameObject(name, typeof(RectTransform), typeof(Canvas), typeof(GraphicRaycaster));
             var rt = (RectTransform)go.transform;
             rt.SetParent(Root, false);
             Stretch(rt);
-            // layers need their own canvas to keep raycaster meaningful
-            go.AddComponent<Canvas>().overrideSorting = false;
+            go.GetComponent<Canvas>().overrideSorting = false;
             return rt;
         }
 

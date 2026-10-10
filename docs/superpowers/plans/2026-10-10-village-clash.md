@@ -89,7 +89,7 @@
 
 ### Task 13: League, Clans, Settings, defense log, polish
 **Files:** `UI/LeaguePanel.cs`, `UI/ClanPanel.cs` (mock data, search), `UI/SettingsPanel.cs` (toggles, mock connect buttons, More Settings → Reset Village), `UI/DefenseLogToast.cs`; `Editor/ProjectSetup.BuildMac()`.
-- [ ] Headless build via `unity build … --execute-method ProjectSetup.BuildMac --target StandaloneOSX`; launch app, capture screenshot with `screencapture`, fix visual issues. Commit.
+- [x] Headless build via `unity build … --execute-method ProjectSetup.BuildMac --target StandaloneOSX`; launch app, capture screenshot with `screencapture`, fix visual issues. Commit.
 
 ### Task 14: Verification
-- [ ] `unity test --mode EditMode` all green; build succeeds; app launches; smoke a full loop (place, collect, train, attack, result, save reload). Write `README.md` with how to open/run/test/build. Final commit.
+- [x] `unity test --mode EditMode` all green; build succeeds; app launches; smoke a full loop (place, collect, train, attack, result, save reload). Write `README.md` with how to open/run/test/build. Final commit.

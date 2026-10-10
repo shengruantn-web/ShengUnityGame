@@ -37,6 +37,8 @@ namespace VillageClash.UI
             Screens.Wire(root, Hud);
             if (root.Controller.IsNewPlayer) UIKit.Toast("Welcome, Chief! Tap the Shop to build your village.");
             else DefenseLogToast.ShowPending();
+            Application.runInBackground = true;
+            AutoShots.TryStart();
         }
     }
 }
