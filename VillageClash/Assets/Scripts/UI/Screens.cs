@@ -68,14 +68,14 @@ namespace VillageClash.UI
             };
             hud.OnGems = () => UIKit.Toast("Gems are earned by clearing obstacles and winning battles.");
             hud.OnNews = () => UIKit.Toast("No news today. Go raid something!");
-            hud.OnProfile = () => UIKit.Toast($"{c.State.PlayerName} - Level {c.State.Level} - {c.State.BattlesWon}/{c.State.BattlesPlayed} battles won");
+            hud.OnProfile = () => { Popup.Hide(); ClanPanel.Show(0); };
             hud.OnAttack = () => { Popup.Hide(); AttackPanel.Show(sim => Battle.Begin(sim)); };
             hud.OnArmy = () => { Popup.Hide(); ArmyPanel.Show(0); };
             hud.OnCastle = () => hud.OnClans?.Invoke();
-            hud.OnSettings = () => UIKit.Toast("Settings coming soon");
-            hud.OnClans = () => UIKit.Toast("Clans coming soon");
-            hud.OnLeague = () => UIKit.Toast("League coming soon");
-            hud.OnMail = () => UIKit.Toast("No defense reports yet");
+            hud.OnSettings = () => { Popup.Hide(); SettingsPanel.Show(); };
+            hud.OnClans = () => { Popup.Hide(); ClanPanel.Show(1); };
+            hud.OnLeague = () => { Popup.Hide(); LeaguePanel.Show(); };
+            hud.OnMail = () => { Popup.Hide(); DefenseLogToast.ShowLog(); };
         }
     }
 }

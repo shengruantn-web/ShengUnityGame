@@ -40,8 +40,6 @@ namespace VillageClash.Core
             if (elapsed > 0)
             {
                 PendingDefenseReport = DefenseLog.SimulateOffline(State, elapsed, Now, new Random(State.Seed ^ (int)Now));
-                if (PendingDefenseReport != null) State.DefenseLog.Insert(0, PendingDefenseReport);
-                while (State.DefenseLog.Count > DefenseLog.MaxEntries) State.DefenseLog.RemoveAt(State.DefenseLog.Count - 1);
             }
             Tick();
             Save();
