@@ -129,10 +129,17 @@
 - [x] Pass EditMode regression tests for disk failures, backup recovery, interrupted normal/practice raids, and repeated settlement.
 - [x] Rebuild the macOS player and pass standalone smoke verification.
 
+Additional validation on 2026-10-11: the isolated save-reliability build passed
+65/65 EditMode tests and built with zero errors. Standalone gameplay, repeatability,
+backup creation, invalid invocation, and watchdog checks passed. The final
+normal-save preservation guard failed while two other game processes were open;
+all verification runs reported isolated paths. Recheck that guard with other game
+instances closed and Editor Play mode stopped before release.
+
 ### Remaining follow-up order
 
 1. Visual and input QA across window sizes: layout, placement, camera, deployment.
-2. Finish save-reliability verification (Follow-up 3).
+2. Recheck normal-save preservation without concurrent game instances (Follow-up 3).
 3. Guided first-time experience through collection, building, training, raiding, and upgrading.
 4. Town Hall 1–5 progression balance and combat feedback.
 5. Release documentation, reconciled acceptance checklist, screenshots, and final macOS package.

@@ -111,6 +111,9 @@ and interactive review.
 
 Verify repeatability, failure exit codes, and preservation of your normal save:
 
+Close other game instances and stop Editor Play mode first; concurrent autosaves
+will make the normal-save preservation check fail.
+
 ```bash
 python3 scripts/verify_smoke.py
 ```
