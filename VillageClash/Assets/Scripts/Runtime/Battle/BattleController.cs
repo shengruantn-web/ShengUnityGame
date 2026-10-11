@@ -18,6 +18,15 @@ namespace VillageClash
         public event Action Changed; // selection or counts changed (HUD refresh)
 
         GameRoot R => GameRoot.I;
+        // HUD layout the battle camera keeps the base clear of; the HUD (UI assembly) sets these when it is created.
+        float uiRefW = 1920f, uiRefH = 1080f, hudTop = 0f, hudBottom = 0f;
+
+        /// <summary>Canvas reference size and the canvas-unit heights of the top and bottom HUD strips.</summary>
+        public void SetHudInsets(float referenceWidth, float referenceHeight, float top, float bottom)
+        {
+            uiRefW = Mathf.Max(1, referenceWidth); uiRefH = Mathf.Max(1, referenceHeight);
+            hudTop = Mathf.Max(0, top); hudBottom = Mathf.Max(0, bottom);
+        }
         float endTimer; bool reported; float holdDeployCd;
 
         void Start()
@@ -36,9 +45,7 @@ namespace VillageClash
             R.Labels.Clear();
             R.Village.ShowTraps = false;
             R.Village.Show(sim.Enemy.Village, false);
-            var th = sim.Enemy.Village.TownHall;
-            IsoMath.FootprintCenter(th != null ? th.Origin : new Int2(18, 18), th != null ? th.Size : 4, out var wx, out var wy);
-            R.Cam.Focus(new Vector2(wx, wy), 9f);
+            FrameEnemyBase(sim);
             Renderer = new GameObject("BattleRenderer").AddComponent<BattleRenderer>();
             Renderer.transform.SetParent(transform, false);
             Renderer.Init(this);
@@ -46,6 +53,17 @@ namespace VillageClash
             R.SetMode(GameMode.Battle);
             Sfx.Play(SfxId.Open);
             Changed?.Invoke();
+        }
+
+        /// <summary>Zoom and center so the whole enemy base is visible between the top HUD panels and the troop bar.</summary>
+        void FrameEnemyBase(BattleSim sim)
+        {
+            float w = Mathf.Max(1, Screen.width), h = Mathf.Max(1, Screen.height);
+            float uiScale = Mathf.Min(w / uiRefW, h / uiRefH); // CanvasScaler Expand: smaller ratio wins
+            float topFrac = hudTop * uiScale / h, bottomFrac = hudBottom * uiScale / h;
+            BattleFraming.Fit(sim.Enemy.Village.Buildings, w / h, topFrac, bottomFrac, CameraRig.MinZoom, CameraRig.MaxZoom,
+                out var cx, out var cy, out var zoom);
+            R.Cam.Focus(new Vector2(cx, cy), zoom);
         }
 
         TroopType FirstAvailable()

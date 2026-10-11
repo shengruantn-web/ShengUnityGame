@@ -18,8 +18,12 @@ namespace VillageClash.UI
         readonly List<(TroopType type, BtnView btn, Text count)> slots = new List<(TroopType, BtnView, Text)>();
         RectTransform lootRow;
 
+        /// <summary>Canvas-unit heights of the HUD strips the battle camera must keep the base clear of (loot panel 20+190; troop bar 16+150 plus the hint above it).</summary>
+        public const float TopInset = 210f, BottomInset = 210f;
+
         public static BattleHud Create(BattleController battle)
         {
+            battle.SetHudInsets(UIKit.ReferenceWidth, UIKit.ReferenceHeight, TopInset, BottomInset);
             var rt = UIKit.Node("BattleHud", UIKit.HudLayer);
             UIKit.Stretch(rt);
             var h = rt.gameObject.AddComponent<BattleHud>();

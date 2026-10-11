@@ -190,6 +190,9 @@ namespace VillageClash.UI
                 var lt = UIKit.Label(lockP.transform, st.LockText, 24);
                 UIKit.Place((RectTransform)lt.transform, UIKit.MC, new Vector2(0, -30), new Vector2(230, 80));
                 buy.SetEnabled(false);
+                // The build-time row sits exactly under the lock label and shows through the translucent overlay.
+                time.gameObject.SetActive(false);
+                clock.gameObject.SetActive(false);
             }
         }
 

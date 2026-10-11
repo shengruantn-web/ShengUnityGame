@@ -60,6 +60,8 @@ namespace VillageClash.UI
     /// <summary>Code-built uGUI toolkit: canvas, primitives, modals, toasts.</summary>
     public static class UIKit
     {
+        /// <summary>Canvas design resolution; the scaler keeps all of it visible (Expand match mode).</summary>
+        public const float ReferenceWidth = 1920f, ReferenceHeight = 1080f;
         public static Canvas Canvas { get; private set; }
         public static RectTransform Root { get; private set; }
         public static RectTransform HudLayer { get; private set; }
@@ -83,7 +85,7 @@ namespace VillageClash.UI
             Canvas.sortingOrder = 10;
             var sc = go.GetComponent<CanvasScaler>();
             sc.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            sc.referenceResolution = new Vector2(1920, 1080);
+            sc.referenceResolution = new Vector2(ReferenceWidth, ReferenceHeight);
             sc.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
             Root = (RectTransform)go.transform;
             runner = go.AddComponent<Runner>();
