@@ -145,4 +145,4 @@
 - [x] `scripts/package_mac.sh`: strip, sign (ad-hoc or Developer ID), verify, zip with sha256, optional notarization.
 - [x] `LICENSE` (MIT) and `CHANGELOG.md`; README sections for packaging and license.
 - [x] Rebuild with `BuildMac` once the save-reliability work is committed; confirm `Info.plist` shows the new bundle id, version and icon; run `scripts/package_mac.sh`. Done 2026-10-11 on a scratch copy of the project (the open Editor locks the main path): 65 EditMode tests pass, `Info.plist` shows `com.shengruantn.villageclash` 1.0.0 with `PlayerIcon.icns`, `verify_smoke.py` and `package_mac.sh` pass.
-- [ ] Tag `v1.0.0`, push, and publish a GitHub Release with the zip, sha256, screenshots and the changelog entry.
+- [ ] Tag `v1.0.0` and publish the GitHub Release. Status 2026-10-11: main pushed; draft release "Village Clash 1.0.0" created with the zip and sha256 attached (tag is created on publish). Publish after the desktop QA and screenshot recapture in Follow-up 2.
