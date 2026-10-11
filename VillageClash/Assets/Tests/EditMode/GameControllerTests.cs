@@ -145,6 +145,137 @@ namespace VillageClash.Tests
             Assert.IsTrue(SaveSystem.TryDeserialize(store, out var s));
             Assert.That(s.Gold, Is.EqualTo(GameData.StartingGold));
         }
+
+        [Test]
+        public void SaveFailureIsReportedAndCanBeRetried()
+        {
+            bool fail = true;
+            var controller = new GameController(clock, () => store, json =>
+            {
+                if (fail) throw new System.IO.IOException("Disk full");
+                store = json;
+            });
+            controller.Load();
+            Assert.IsFalse(controller.Save());
+            Assert.That(controller.LastSaveError, Is.EqualTo("Disk full"));
+            Assert.That(toasts.Exists(t => t.Contains("Could not save")), Is.True);
+            fail = false;
+            Assert.IsTrue(controller.Save());
+            Assert.IsNull(controller.LastSaveError);
+        }
+
+        [Test]
+        public void LoadIoFailureNeverOverwritesExistingSave()
+        {
+            int writes = 0;
+            var controller = new GameController(clock, () => throw new System.IO.IOException("Access denied"), _ => writes++);
+            controller.Load();
+            controller.Reset();
+            clock.Advance(60);
+            controller.Tick();
+            Assert.IsFalse(controller.Save());
+            Assert.That(writes, Is.Zero);
+            Assert.That(controller.LoadNotice, Does.Contain("disabled"));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void InterruptedRaidSettlesCheckpointOnce(bool practice)
+        {
+            gc.State.SetArmy(TroopType.Barbarian, 10);
+            gc.State.Trophies = 100;
+            gc.State.Gold = 100;
+            gc.State.Elixir = 100;
+            var battle = practice ? gc.StartPractice(0) : gc.StartMatch(42);
+            battle.NearestDeployCell(new Int2(20, 2), out var cell);
+            for (int i = 0; i < 6; i++) Assert.IsTrue(battle.TryDeploy(TroopType.Barbarian, cell.X + .5f, cell.Y + .5f));
+            // Deployment itself is durable, with no explicit controller Save call.
+            Assert.IsTrue(SaveSystem.TryDeserialize(store, out var deployed));
+            Assert.That(deployed.PendingBattle.TroopsUsed[0], Is.EqualTo(6));
+            for (int i = 0; i < 180 && !battle.Ended; i++) battle.Step(.5f);
+            Assert.IsTrue(SaveSystem.TryDeserialize(store, out var checkpoint));
+            Assert.That(checkpoint.PendingBattle.Duration, Is.GreaterThan(0));
+            var result = checkpoint.PendingBattle;
+
+            var reopened = new GameController(clock, () => store, json => store = json);
+            reopened.Load();
+            Assert.That(reopened.State.Army(TroopType.Barbarian), Is.EqualTo(4));
+            Assert.That(reopened.State.Gold, Is.EqualTo(System.Math.Min(Economy.GoldCap(checkpoint), checkpoint.Gold + result.Gold)));
+            Assert.That(reopened.State.Elixir, Is.EqualTo(System.Math.Min(Economy.ElixirCap(checkpoint), checkpoint.Elixir + result.Elixir)));
+            Assert.That(reopened.State.Trophies, Is.EqualTo(100 + result.TrophyDelta));
+            Assert.That(reopened.State.BattlesPlayed, Is.EqualTo(practice ? 0 : 1));
+            Assert.IsNull(reopened.State.PendingBattle);
+            Assert.IsNull(reopened.FinishBattle());
+            string settled = store;
+            reopened.Load();
+            Assert.That(store, Is.EqualTo(settled), "reopening cannot award loot or consume troops again");
+        }
+
+        [Test]
+        public void InterruptedScoutingKeepsArmyButSettlesSurrender()
+        {
+            gc.State.SetArmy(TroopType.Barbarian, 5);
+            gc.State.Trophies = 100;
+            Assert.NotNull(gc.StartMatch(42));
+            int paidGold = gc.State.Gold;
+            var reopened = new GameController(clock, () => store, json => store = json);
+            reopened.Load();
+            Assert.That(reopened.State.Army(TroopType.Barbarian), Is.EqualTo(5));
+            Assert.That(reopened.State.Gold, Is.EqualTo(paidGold));
+            Assert.That(reopened.State.Trophies, Is.EqualTo(100 + Progression.TrophyDelta(0)));
+            Assert.That(reopened.State.BattlesPlayed, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void FailedSettlementWriteCanRecoverWithoutDuplicatingRewards()
+        {
+            bool fail = false;
+            var controller = new GameController(clock, () => store, json =>
+            {
+                if (fail) throw new System.IO.IOException("Disk full");
+                store = json;
+            });
+            controller.Load();
+            controller.State.SetArmy(TroopType.Barbarian, 5);
+            var battle = controller.StartMatch(42);
+            battle.NearestDeployCell(new Int2(20, 2), out var cell);
+            battle.TryDeploy(TroopType.Barbarian, cell.X + .5f, cell.Y + .5f);
+            battle.Surrender();
+            fail = true;
+            controller.FinishBattle();
+            Assert.IsNull(controller.FinishBattle());
+            fail = false;
+            controller.Load();
+            Assert.That(controller.State.Army(TroopType.Barbarian), Is.EqualTo(4));
+            Assert.That(controller.State.BattlesPlayed, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void RaidDoesNotStartWhenInitialSaveFails()
+        {
+            var controller = new GameController(clock, () => store, _ => throw new System.IO.IOException("Disk full"));
+            controller.Load();
+            controller.State.SetArmy(TroopType.Barbarian, 5);
+            int gold = controller.State.Gold;
+            long shield = controller.State.ShieldUntilUnix;
+            Assert.IsNull(controller.StartMatch(42));
+            Assert.That(controller.State.Gold, Is.EqualTo(gold));
+            Assert.That(controller.State.ShieldUntilUnix, Is.EqualTo(shield));
+            Assert.IsNull(controller.ActiveBattle);
+            Assert.IsNull(controller.State.PendingBattle);
+        }
+
+        [Test]
+        public void SecondRaidCannotReplaceAnActiveBattle()
+        {
+            gc.State.SetArmy(TroopType.Barbarian, 5);
+            var battle = gc.StartMatch(42);
+            int gold = gc.State.Gold;
+            Assert.IsNull(gc.StartMatch(43));
+            Assert.IsNull(gc.StartPractice(0));
+            Assert.That(gc.ActiveBattle, Is.SameAs(battle));
+            Assert.That(gc.State.Gold, Is.EqualTo(gold));
+        }
     
         [Test]
         public void FillWithGems_TopsUpMissingResourcesAtOneGemPerTen()

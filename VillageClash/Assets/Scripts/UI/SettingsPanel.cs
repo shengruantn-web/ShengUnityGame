@@ -85,7 +85,10 @@ namespace VillageClash.UI
             var m = UIKit.ShowModal("More Settings", new Vector2(760, 420));
             var l = UIKit.Dark(m.Content, $"Save file:\n{root.SavePath}\n\nTown Hall {c.State.TownHallLevel}  -  Level {c.State.Level}  -  {c.State.Village.Buildings.Count} buildings", 22, TextAnchor.UpperLeft, false);
             UIKit.Place((RectTransform)l.transform, UIKit.TC, new Vector2(0, -10), new Vector2(700, 160));
-            var save = UIKit.Btn(m.Content, "Save Now", Palette.Green, new Vector2(300, 70), () => { c.Save(); UIKit.Toast("Village saved."); }, 26);
+            var save = UIKit.Btn(m.Content, "Save Now", Palette.Green, new Vector2(300, 70), () =>
+            {
+                UIKit.Toast(c.Save() ? "Village saved." : "Village could not be saved. Check disk space and file access.");
+            }, 26);
             UIKit.Place(save.Rt, UIKit.BC, new Vector2(-170, 20), new Vector2(300, 70));
             var reset = UIKit.Btn(m.Content, "Reset Village", Palette.Red, new Vector2(300, 70), () =>
             {

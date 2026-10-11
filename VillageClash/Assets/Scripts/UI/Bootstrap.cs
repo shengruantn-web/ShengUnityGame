@@ -39,6 +39,11 @@ namespace VillageClash.UI
             Screens.Wire(root, Hud);
             if (root.Controller.IsNewPlayer) UIKit.Toast("Welcome, Chief! Tap the Shop to build your village.");
             else DefenseLogToast.ShowPending();
+            string saveNotice = root.SaveLoadNotice;
+            if (root.Controller.LoadNotice != null) saveNotice = (saveNotice == null ? "" : saveNotice + " ") + root.Controller.LoadNotice;
+            if (root.Controller.LastSaveError != null && root.Controller.LoadNotice == null)
+                saveNotice = "Could not save your village. Check disk space and file access, then try Save Now.";
+            if (saveNotice != null) UIKit.Toast(saveNotice);
             Application.runInBackground = true;
             AutoShots.TryStart();
         }

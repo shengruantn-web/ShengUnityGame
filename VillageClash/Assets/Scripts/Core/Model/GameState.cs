@@ -42,6 +42,8 @@ namespace VillageClash.Core
         public int BattlesPlayed;
         public int BattlesWon;
         public int TotalStars;
+        // Unapplied result of the last durable raid checkpoint; settled once on load.
+        public BattleResult PendingBattle;
 
         public VillageModel Village = new VillageModel();
 

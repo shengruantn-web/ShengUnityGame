@@ -52,6 +52,16 @@ namespace VillageClash.Core
                     ["elixir"] = r.ElixirLost, ["trophies"] = r.TrophyDelta, ["at"] = r.AtUnix, ["seen"] = r.Seen,
                 });
             o["defenseLog"] = log;
+            var battle = s.PendingBattle;
+            if (battle != null)
+                o["pendingBattle"] = new Dictionary<string, object>
+                {
+                    ["stars"] = battle.Stars, ["percent"] = battle.Percent,
+                    ["gold"] = battle.Gold, ["elixir"] = battle.Elixir, ["trophies"] = battle.TrophyDelta,
+                    ["townHallDown"] = battle.TownHallDown, ["practice"] = battle.Practice,
+                    ["surrendered"] = battle.Surrendered, ["duration"] = battle.Duration,
+                    ["enemyName"] = battle.EnemyName, ["troopsUsed"] = battle.TroopsUsed,
+                };
             return MiniJson.Write(o);
         }
 
@@ -78,6 +88,30 @@ namespace VillageClash.Core
                 for (int i = 0; i < Math.Min(army.Count, s.ArmyCounts.Length); i++) s.ArmyCounts[i] = (int)(army[i] is long l ? l : 0);
                 var tl = MiniJson.GetList(o, "troopLevels");
                 for (int i = 0; i < Math.Min(tl.Count, s.TroopLevels.Length); i++) s.TroopLevels[i] = Math.Max(1, Math.Min(3, (int)(tl[i] is long l ? l : 1)));
+                if (o.ContainsKey("pendingBattle"))
+                {
+                    var b = MiniJson.GetObj(o, "pendingBattle");
+                    if (b == null) return false;
+                    var used = MiniJson.GetList(b, "troopsUsed");
+                    if (used.Count != s.ArmyCounts.Length) return false;
+                    var result = new BattleResult
+                    {
+                        Stars = MiniJson.GetInt(b, "stars", -1), Percent = MiniJson.GetInt(b, "percent", -1),
+                        Gold = MiniJson.GetInt(b, "gold", -1), Elixir = MiniJson.GetInt(b, "elixir", -1),
+                        TrophyDelta = MiniJson.GetInt(b, "trophies"), TownHallDown = MiniJson.GetBool(b, "townHallDown"),
+                        Practice = MiniJson.GetBool(b, "practice"), Surrendered = MiniJson.GetBool(b, "surrendered"),
+                        Duration = (float)MiniJson.GetDouble(b, "duration"), EnemyName = MiniJson.GetString(b, "enemyName"),
+                        TroopsUsed = new int[used.Count],
+                    };
+                    if (result.Stars < 0 || result.Stars > 3 || result.Percent < 0 || result.Percent > 100 || result.Gold < 0 || result.Elixir < 0)
+                        return false;
+                    for (int i = 0; i < used.Count; i++)
+                    {
+                        if (!(used[i] is long n) || n < 0 || n > s.ArmyCounts[i]) return false;
+                        result.TroopsUsed[i] = (int)n;
+                    }
+                    s.PendingBattle = result;
+                }
                 foreach (var item in MiniJson.GetList(o, "buildings"))
                 {
                     if (!(item is Dictionary<string, object> bo)) continue;

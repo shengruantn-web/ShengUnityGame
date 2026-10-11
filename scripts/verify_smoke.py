@@ -21,8 +21,12 @@ def main():
     args = parser.parse_args()
     require(args.player.is_file(), "Build the macOS player before running verification.")
     normal_save = Path.home() / "Library/Application Support/VillageClash/Village Clash/village.json"
-    before = normal_save.read_bytes() if normal_save.exists() else None
-    before_mtime = normal_save.stat().st_mtime_ns if normal_save.exists() else None
+
+    def player_save_files():
+        return {path.name: (path.read_bytes(), path.stat().st_mtime_ns)
+                for path in normal_save.parent.glob(normal_save.name + "*") if path.is_file()}
+
+    before = player_save_files()
     output = Path(tempfile.mkdtemp(prefix="village-clash-verification-"))
     print(f"Verification logs: {output}", flush=True)
 
@@ -56,15 +60,18 @@ def main():
         require(json.loads(first.read_text()) == json.loads(second.read_text()),
                 "Repeated runs produced different saved states")
         print("PASS independent runs produce identical game state", flush=True)
+        for save in (first, second):
+            backup = Path(str(save) + ".bak")
+            require(backup.is_file(), "Gameplay did not create a backup save")
+            require(json.loads(backup.read_text())["version"] == 1, "Backup is not a readable save")
+            require(not Path(str(save) + ".tmp").exists(), "Successful save left a temporary file")
+        print("PASS gameplay saves have readable backups and no uncommitted temporary files", flush=True)
         run("missing-shots-directory", ["-shots"], 1)
         run("headless-screenshots-rejected", ["-shots", str(output / "shots")], 1)
         run("watchdog", ["-smoke-test", "-smoke-timeout", "1"], None)
     finally:
-        after = normal_save.read_bytes() if normal_save.exists() else None
-        after_mtime = normal_save.stat().st_mtime_ns if normal_save.exists() else None
-        require(before == after and before_mtime == after_mtime,
-                "Normal player save changed during verification")
-        print("PASS normal player save contents and modification time unchanged", flush=True)
+        require(before == player_save_files(), "Normal player save or recovery files changed during verification")
+        print("PASS normal player save and recovery files unchanged", flush=True)
     print("All smoke-runner verification checks passed.")
 
 

@@ -30,7 +30,7 @@ VillageClash/             Unity project
   Assets/Scripts/Runtime  rendering, camera, input, audio, battle presentation (depends on UnityEngine)
   Assets/Scripts/UI       uGUI built from code: HUD, shop, popups, panels, battle HUD
   Assets/Editor           ProjectSetup: creates Main scene, builds the macOS player
-  Assets/Tests/EditMode   NUnit tests for Core (50 tests)
+  Assets/Tests/EditMode   NUnit tests for Core and save-file recovery
 ```
 
 The scene `Assets/Scenes/Main.unity` contains only a camera. `Bootstrap` runs on scene load and
@@ -157,7 +157,26 @@ To regenerate the icon: `python3 scripts/make_icon.py VillageClash/Assets/Icon/A
 ## Save file
 
 `~/Library/Application Support/VillageClash/Village Clash/village.json` (Unity's
-`persistentDataPath`). Delete it, or use Settings > More Settings > Reset Village, to start over.
+`persistentDataPath`). Use Settings > More Settings > Reset Village to start over.
+
+Saves are flushed to `village.json.tmp` and atomically replace the primary file.
+`village.json.bak` keeps the previous valid save. If the primary is missing or
+invalid, the game loads the backup and displays a recovery notice. Invalid files
+are copied to `.unreadable-<id>` files before replacement. An IO error while loading
+disables saving for that session to protect existing progress; fix file access and
+restart. Save Now reports whether the write succeeded. To reset manually, remove
+both the primary and backup while the game is closed.
+
+Raids save a result checkpoint at entry, on each troop deployment, every five seconds
+of combat, and at battle end. Quit/pause also saves the current checkpoint. After an
+interruption, the next launch settles the last committed checkpoint once and returns
+home: deployed troops are consumed and earned loot, trophies, and XP are applied.
+Unfinished raids use the same result rules as ending the battle at that point;
+leaving during scouting keeps the army but counts as a zero-star surrender.
+Practice still leaves trophies and normal battle statistics unchanged. Combat does
+not resume; a crash can lose combat progress since the last successful checkpoint.
+If the initial raid save fails, the raid does not start or charge its entry cost.
+Existing version-1 saves remain compatible.
 
 ## License
 

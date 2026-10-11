@@ -23,4 +23,4 @@ First playable release.
 - Offline production, simulated incoming raids and a defense log.
 - JSON save with atomic writes, backup recovery and interrupted-raid settlement.
 - Fully procedural art, UI and audio; no imported assets.
-- 50 EditMode tests, a headless gameplay smoke runner and a screenshot capture mode.
+- 65 EditMode tests (including save-file recovery and interrupted-raid settlement), a headless gameplay smoke runner and a screenshot capture mode.

@@ -119,20 +119,30 @@
 - [ ] Recapture the final build at 1600×900, 1280×720, and 1280×960; replace the screenshot artifacts after review.
 - [ ] Exercise native mouse/keyboard controls on an unlocked desktop. Input-router checks pass, but desktop automation could not find the window after the screen locked again.
 
+### Follow-up 3: Save reliability (2026-10-11)
+
+- [x] Flush a temporary save and atomically replace the primary; retain the previous valid save as a backup.
+- [x] Recover missing/corrupt primary saves from backup, preserve invalid originals, and display recovery notices.
+- [x] Report failed saves accurately and prevent writes after an IO failure during loading.
+- [x] Persist raid result checkpoints on entry, deployment, every five combat seconds, and completion; settle interrupted raids once on load.
+- [x] Keep version-1 saves compatible and prevent a second raid from replacing an active raid.
+- [x] Pass EditMode regression tests for disk failures, backup recovery, interrupted normal/practice raids, and repeated settlement.
+- [x] Rebuild the macOS player and pass standalone smoke verification.
+
 ### Remaining follow-up order
 
 1. Visual and input QA across window sizes: layout, placement, camera, deployment.
-2. Save reliability: atomic writes, backup/recovery, and interruption during battle.
+2. Finish save-reliability verification (Follow-up 3).
 3. Guided first-time experience through collection, building, training, raiding, and upgrading.
 4. Town Hall 1–5 progression balance and combat feedback.
 5. Release documentation, reconciled acceptance checklist, screenshots, and final macOS package.
 
-### Follow-up 3: Release hygiene (2026-10-10)
+### Follow-up 4: Release hygiene (2026-10-10)
 
 - [x] Replace the template bundle id `com.DefaultCompany.2D-Project` with `com.shengruantn.villageclash`; set version 1.0.0 and macOS build number 1 (`ProjectSetup.ConfigureRelease`, run by `BuildMac`).
 - [x] Procedural app icon (`scripts/make_icon.py` → `Assets/Icon/AppIcon.png`) assigned to all standalone icon sizes.
 - [x] `BuildMac` removes `*_BurstDebugInformation_DoNotShip` after a successful build.
 - [x] `scripts/package_mac.sh`: strip, sign (ad-hoc or Developer ID), verify, zip with sha256, optional notarization.
 - [x] `LICENSE` (MIT) and `CHANGELOG.md`; README sections for packaging and license.
-- [ ] Rebuild with `BuildMac` once the save-reliability work is committed; confirm `Info.plist` shows the new bundle id, version and icon; run `scripts/package_mac.sh`.
+- [x] Rebuild with `BuildMac` once the save-reliability work is committed; confirm `Info.plist` shows the new bundle id, version and icon; run `scripts/package_mac.sh`. Done 2026-10-11 on a scratch copy of the project (the open Editor locks the main path): 65 EditMode tests pass, `Info.plist` shows `com.shengruantn.villageclash` 1.0.0 with `PlayerIcon.icns`, `verify_smoke.py` and `package_mac.sh` pass.
 - [ ] Tag `v1.0.0`, push, and publish a GitHub Release with the zip, sha256, screenshots and the changelog entry.

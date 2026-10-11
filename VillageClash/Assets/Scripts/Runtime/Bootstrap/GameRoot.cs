@@ -20,6 +20,8 @@ namespace VillageClash
         public event Action<GameMode> ModeChanged;
 
         float tickTimer;
+        SaveFileStore saveStore;
+        public string SaveLoadNotice => saveStore?.LoadNotice;
         public string SavePath => SmokeSession.Current != null
             ? SmokeSession.Current.SavePath
             : Path.Combine(Application.persistentDataPath, "village.json");
@@ -38,7 +40,8 @@ namespace VillageClash
             Application.targetFrameRate = 60;
             IClock clock = SmokeSession.Current != null && !SmokeSession.Current.Interactive
                 ? (IClock)SmokeSession.Current.Clock : new SystemClock();
-            Controller = new GameController(clock, LoadFile, SaveFile);
+            saveStore = new SaveFileStore(SavePath);
+            Controller = new GameController(clock, saveStore.Load, saveStore.Save);
             Controller.Load();
             Cam = CameraRig.Create();
             Village = new GameObject("Village").AddComponent<VillageRenderer>();
@@ -83,20 +86,5 @@ namespace VillageClash
         void OnApplicationQuit() => Controller?.Save();
         void OnApplicationPause(bool paused) { if (paused) Controller?.Save(); }
 
-        string LoadFile()
-        {
-            try { return File.Exists(SavePath) ? File.ReadAllText(SavePath) : null; }
-            catch (Exception e) { Debug.LogWarning("Load failed: " + e.Message); return null; }
-        }
-
-        void SaveFile(string json)
-        {
-            try
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(SavePath));
-                File.WriteAllText(SavePath, json);
-            }
-            catch (Exception e) { Debug.LogWarning("Save failed: " + e.Message); }
-        }
     }
 }

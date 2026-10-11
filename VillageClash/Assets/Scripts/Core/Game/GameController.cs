@@ -13,6 +13,9 @@ namespace VillageClash.Core
         public DefenseReport PendingDefenseReport { get; private set; }
         public BattleSim ActiveBattle { get; private set; }
         public bool IsNewPlayer { get; private set; }
+        public string LoadNotice { get; private set; }
+        public string LastSaveError { get; private set; }
+        bool loadFailed;
         long lastSaveUnix;
         const int AutoSaveSeconds = 15;
 
@@ -28,19 +31,37 @@ namespace VillageClash.Core
         // ---- lifecycle --------------------------------------------------------
         public void Load()
         {
+            DetachBattle();
+            IsNewPlayer = false;
+            PendingDefenseReport = null;
+            LoadNotice = null;
+            loadFailed = false;
             string json = null;
-            try { json = load?.Invoke(); } catch { json = null; }
+            try { json = load?.Invoke(); }
+            catch (Exception e)
+            {
+                loadFailed = true;
+                LastSaveError = e.Message;
+                LoadNotice = "Your save could not be read. Saving is disabled to protect it. Restart after checking file access.";
+            }
             if (string.IsNullOrEmpty(json) || !SaveSystem.TryDeserialize(json, out var s))
             {
                 s = SaveSystem.NewGame(Environment.TickCount, Now);
                 IsNewPlayer = true;
+                if (!loadFailed && json != null) LoadNotice = "Your save was invalid; a new village was started.";
             }
             State = s;
+            if (State.PendingBattle != null)
+            {
+                ApplyBattleResult(State.PendingBattle);
+                LoadNotice = "Your interrupted raid was settled from its last saved checkpoint.";
+            }
             long elapsed = State.LastSeenUnix > 0 ? Now - State.LastSeenUnix : 0;
             if (elapsed > 0)
             {
                 PendingDefenseReport = DefenseLog.SimulateOffline(State, elapsed, Now, new Random(State.Seed ^ (int)Now));
             }
+            lastSaveUnix = Now;
             Tick();
             Save();
         }
@@ -50,7 +71,7 @@ namespace VillageClash.Core
             State = SaveSystem.NewGame(Environment.TickCount, Now);
             IsNewPlayer = true;
             PendingDefenseReport = null;
-            ActiveBattle = null;
+            DetachBattle();
             Save();
             GameEvents.RaiseStateChanged();
         }
@@ -61,12 +82,33 @@ namespace VillageClash.Core
             PendingDefenseReport = null;
         }
 
-        public void Save()
+        public bool Save()
         {
-            if (State == null) return;
-            State.LastSeenUnix = Now;
+            if (State == null) return false;
             lastSaveUnix = Now;
-            try { save?.Invoke(SaveSystem.Serialize(State)); } catch { }
+            if (loadFailed)
+            {
+                GameEvents.RaiseToast(LoadNotice);
+                return false;
+            }
+            State.LastSeenUnix = Now;
+            if (ActiveBattle != null)
+            {
+                State.PendingBattle = ActiveBattle.Result();
+                if (!ActiveBattle.Ended) State.PendingBattle.Surrendered = true;
+            }
+            try
+            {
+                save?.Invoke(SaveSystem.Serialize(State));
+                LastSaveError = null;
+                return true;
+            }
+            catch (Exception e)
+            {
+                if (LastSaveError == null) GameEvents.RaiseToast("Could not save your village. Check disk space and file access, then try Save Now.");
+                LastSaveError = e.Message;
+                return false;
+            }
         }
 
         /// <summary>Advance time-driven systems. Call every frame or every second; cheap.</summary>
@@ -242,6 +284,7 @@ namespace VillageClash.Core
         // ---- battles ------------------------------------------------------------
         public string AttackError()
         {
+            if (ActiveBattle != null) return "Finish the current battle first.";
             if (State.ArmySize == 0) return Msg.EmptyArmy;
             if (State.Gold < GameData.MatchCostGold) return Msg.NotEnoughGold;
             return null;
@@ -251,14 +294,19 @@ namespace VillageClash.Core
         {
             var err = AttackError();
             if (err != null) { Fail(err); return null; }
+            int previousGold = State.Gold;
+            long previousShield = State.ShieldUntilUnix;
             Economy.Spend(State, GameData.MatchCostGold, 0);
             State.ShieldUntilUnix = 0; // attacking drops your shield
             var enemy = EnemyBaseGenerator.Generate(seed, Math.Max(1, Math.Min(GameData.MaxTownHall, State.TownHallLevel + (State.Trophies > 400 ? 1 : 0))), State.Trophies);
-            return Begin(enemy, seed);
+            var battle = Begin(enemy, seed);
+            if (battle == null) { State.Gold = previousGold; State.ShieldUntilUnix = previousShield; }
+            return battle;
         }
 
         public BattleSim StartPractice(int mapId)
         {
+            if (ActiveBattle != null) { Fail("Finish the current battle first."); return null; }
             if (State.ArmySize == 0) { Fail(Msg.EmptyArmy); return null; }
             return Begin(EnemyBaseGenerator.Practice(mapId), 1234 + mapId);
         }
@@ -266,7 +314,13 @@ namespace VillageClash.Core
         BattleSim Begin(EnemyBase enemy, int seed)
         {
             ActiveBattle = new BattleSim(enemy, State.ArmyCounts, State.TroopLevels, seed);
-            Save();
+            if (!Save())
+            {
+                State.PendingBattle = null;
+                DetachBattle();
+                return null;
+            }
+            ActiveBattle.Checkpoint += SaveBattleCheckpoint;
             GameEvents.RaiseStateChanged();
             return ActiveBattle;
         }
@@ -276,7 +330,24 @@ namespace VillageClash.Core
             if (ActiveBattle == null) return null;
             if (!ActiveBattle.Ended) ActiveBattle.Surrender();
             var r = ActiveBattle.Result();
+            DetachBattle();
+            ApplyBattleResult(r);
+            Save();
+            GameEvents.RaiseStateChanged();
+            return r;
+        }
+
+        void SaveBattleCheckpoint() { Save(); }
+
+        void DetachBattle()
+        {
+            if (ActiveBattle != null) ActiveBattle.Checkpoint -= SaveBattleCheckpoint;
             ActiveBattle = null;
+        }
+
+        void ApplyBattleResult(BattleResult r)
+        {
+            State.PendingBattle = null;
             // consume deployed troops
             for (int i = 0; i < r.TroopsUsed.Length; i++)
                 State.SetArmy((TroopType)i, Math.Max(0, State.Army((TroopType)i) - r.TroopsUsed[i]));
@@ -293,9 +364,6 @@ namespace VillageClash.Core
             }
             else Progression.AddXp(State, 5 + r.Stars * 5);
             if (State.Level > before) GameEvents.RaiseLevelUp(State.Level);
-            Save();
-            GameEvents.RaiseStateChanged();
-            return r;
         }
 
         // ---- helpers ------------------------------------------------------------

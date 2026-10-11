@@ -18,6 +18,8 @@ namespace VillageClash.Core
         public readonly List<BattleEvent> Events = new List<BattleEvent>();
         public readonly int[] Remaining;
         public readonly int[] Deployed;
+        public event Action Checkpoint;
+        float lastCheckpointTime;
         readonly int[] levels;
         readonly Random rng;
         readonly int size;
@@ -111,6 +113,7 @@ namespace VillageClash.Core
             Units.Add(u);
             Started = true;
             Events.Add(new BattleEvent { Kind = BattleEventKind.UnitDeployed, X = u.X, Y = u.Y, Unit = u });
+            Checkpoint?.Invoke();
             return true;
         }
 
@@ -130,6 +133,11 @@ namespace VillageClash.Core
             {
                 accumulator -= FixedDt;
                 Tick(FixedDt);
+            }
+            if (!Ended && Time - lastCheckpointTime >= 5f)
+            {
+                lastCheckpointTime = Time;
+                Checkpoint?.Invoke();
             }
         }
 
@@ -162,6 +170,7 @@ namespace VillageClash.Core
             if (Ended) return;
             Ended = true;
             Events.Add(new BattleEvent { Kind = BattleEventKind.Ended });
+            Checkpoint?.Invoke();
         }
 
         public BattleResult Result()
