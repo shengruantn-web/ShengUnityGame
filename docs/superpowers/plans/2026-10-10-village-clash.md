@@ -116,8 +116,11 @@
 - [x] Add input-router regression checks for UI interception, pan, zoom, modal blocking, long-press drag, invalid placement, and cancellation.
 - [x] Add `-qa-session` for manual testing without using the normal player save.
 - [x] Rebuild macOS player; rerun EditMode tests (50/50 passed) and standalone smoke-runner checks.
-- [ ] Recapture the final build at 1600×900, 1280×720, and 1280×960; replace the screenshot artifacts after review.
-- [ ] Exercise native mouse/keyboard controls on an unlocked desktop. Input-router checks pass, but desktop automation could not find the window after the screen locked again.
+- [x] Recapture the final build at 1600×900, 1280×720, and 1280×960; replace the screenshot artifacts after review. Done 2026-10-11 22:51 against the 1.0.0 release build on an unlocked desktop: all three sizes passed `-shots` (13 screens each, 62 checks, exact pixel dimensions). The 1600×900 set replaces `docs/screenshots/`. Review notes, none blocking for 1.0.0:
+  - Battle camera does not fit the whole enemy base at 4:3 (1280×960): the rightmost defense is clipped by the window edge. At every size the bottom corner of the base sits under the troop bar. Consider fitting the base to the viewport minus HUD insets.
+  - Locked shop cards: the build-time clock icon shows through the "Level N Town Hall Required" label.
+  - The scripted "You can't place it there!" toast is still visible in the shop and building-popup captures because the invalid-placement step precedes them; toasts intentionally draw above modals.
+- [ ] Exercise native mouse/keyboard controls on an unlocked desktop. Input-router checks pass. 2026-10-11: System Events automation is refused ("osascript is not allowed assistive access"), so this needs a hand check or Accessibility permission for the terminal in System Settings > Privacy & Security > Accessibility.
 
 ### Follow-up 3: Save reliability (2026-10-11)
 
