@@ -17,6 +17,6 @@ First playable release (macOS, Apple silicon and Intel).
 - 65 EditMode tests (including save-file recovery and interrupted-raid settlement), a headless gameplay smoke runner and a screenshot capture mode.
 - Save reliability: writes go to a temporary file and atomically replace `village.json`; the previous valid save is kept as `village.json.bak`; unreadable files are preserved; interrupted raids are checkpointed and settled once on the next launch.
 - Release identity: bundle id `com.shengruantn.villageclash`, version 1.0.0, procedural app icon.
-- `scripts/package_mac.sh` strips debug symbols, signs, verifies and zips the app; optional notarization.
+- `scripts/package_mac.sh` strips debug symbols, signs, verifies and zips the app; optional notarization. The `.sha256` file records the zip basename so `shasum -c` works from any download folder.
 - `ProjectSetup.BuildMac` applies release settings before building and removes the Burst debug folder afterwards.
 - MIT license.

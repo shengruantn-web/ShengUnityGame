@@ -61,5 +61,6 @@ else
   spctl --assess --type execute --verbose "$APP"
 fi
 
-shasum -a 256 "$ZIP" | tee "$ZIP.sha256"
+# Record the basename only so `shasum -c` works from any download location.
+(cd "$(dirname "$ZIP")" && shasum -a 256 "$(basename "$ZIP")" | tee "$(basename "$ZIP").sha256")
 echo "Packaged: $ZIP ($(du -h "$ZIP" | cut -f1))"

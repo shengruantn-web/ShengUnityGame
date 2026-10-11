@@ -136,13 +136,14 @@ normal-save preservation guard failed while two other game processes were open;
 all verification runs reported isolated paths. Recheck that guard with other game
 instances closed and Editor Play mode stopped before release.
 
+- [x] Recheck done 2026-10-11 22:10 with no other game instances running: `verify_smoke.py` run against the app extracted from the draft-release zip (sha256 matched) passed all checks, including normal-save preservation. The earlier failure was caused by the concurrent instances, not by the code.
+
 ### Remaining follow-up order
 
 1. Visual and input QA across window sizes: layout, placement, camera, deployment.
-2. Recheck normal-save preservation without concurrent game instances (Follow-up 3).
-3. Guided first-time experience through collection, building, training, raiding, and upgrading.
-4. Town Hall 1–5 progression balance and combat feedback.
-5. Release documentation, reconciled acceptance checklist, screenshots, and final macOS package.
+2. Guided first-time experience through collection, building, training, raiding, and upgrading.
+3. Town Hall 1–5 progression balance and combat feedback.
+4. Release documentation, reconciled acceptance checklist, screenshots, and final macOS package.
 
 ### Follow-up 4: Release hygiene (2026-10-10)
 
@@ -152,4 +153,4 @@ instances closed and Editor Play mode stopped before release.
 - [x] `scripts/package_mac.sh`: strip, sign (ad-hoc or Developer ID), verify, zip with sha256, optional notarization.
 - [x] `LICENSE` (MIT) and `CHANGELOG.md`; README sections for packaging and license.
 - [x] Rebuild with `BuildMac` once the save-reliability work is committed; confirm `Info.plist` shows the new bundle id, version and icon; run `scripts/package_mac.sh`. Done 2026-10-11 on a scratch copy of the project (the open Editor locks the main path): 65 EditMode tests pass, `Info.plist` shows `com.shengruantn.villageclash` 1.0.0 with `PlayerIcon.icns`, `verify_smoke.py` and `package_mac.sh` pass.
-- [ ] Tag `v1.0.0` and publish the GitHub Release. Status 2026-10-11: main pushed; draft release "Village Clash 1.0.0" created with the zip and sha256 attached (tag is created on publish). Publish after the desktop QA and screenshot recapture in Follow-up 2.
+- [ ] Tag `v1.0.0` and publish the GitHub Release. Status 2026-10-11: main pushed; draft release "Village Clash 1.0.0" created with the zip and sha256 attached (tag is created on publish). Publish after the desktop QA and screenshot recapture in Follow-up 2. Update 2026-10-11 22:15: the `.sha256` asset originally embedded an absolute local path, so `shasum -c` could not verify a download; `package_mac.sh` now writes the basename only and the release asset was replaced (same hash).
